@@ -36,6 +36,12 @@ blockchain = [genesis_block()]
 prev_block = blockchain[0]
 
 def proof_of_work(last_block):
+    counter = last_block + 1
+
+    while not (counter % 10 == 0 and counter % last_block == 0):
+        counter+=1
+
+    return counter
 
 
 for i in range(0,20):
@@ -55,8 +61,35 @@ def txn():
         block_txns.append(new_txn)
 
         return "Transaction submitted"
+
+miner_address = "home sweet home"
+
 @app.route('/mine', methods=['GET'])
 def mine():
+    last_block = blockchain[:-1]
+    last_proof = last_block.data['proof-of-work']
+
+    proof = proof_of_work(last_proof)
+
+    block_txns.append({"from" : "network", "to" : miner_address, "amount" : 1})
+
+    new_data = {"proof-of-work" : proof, "txn" : list[block_txns]}
+
+    new_index = last_block.index + 1
+    new_timestamp = datetime.now()
+    new_hash = last_block.hash
+
+    newBlock = Block(new_index, new_timestamp, new_data, new_hash)
+
+    blockchain.append(newBlock)
+
+    return json.dumps({
+      "index": new_index,
+      "timestamp": str(new_timestamp),
+      "data": new_data,
+      "hash": new_hash
+  }) + "\n"
+
 
 
 
